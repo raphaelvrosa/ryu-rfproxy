@@ -154,7 +154,7 @@ class RFProxy(app_manager.RyuApp):
         self.ipc.send(channel, channel_id, msg)
         self.ipc_lock.release()
 
-    ##Event handlers
+    #Event handlers
     '''
     @set_ev_cls(event.EventSwitchEnter, MAIN_DISPATCHER)
     def handler_datapath_enter(self, ev):
