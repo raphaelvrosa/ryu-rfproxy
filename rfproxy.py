@@ -155,12 +155,14 @@ class RFProxy(app_manager.RyuApp):
         self.ipc_lock.release()
 
     ##Event handlers
-    '''
     @set_ev_cls(event.EventSwitchEnter, MAIN_DISPATCHER)
     def handler_datapath_enter(self, ev):
         dp = ev.switch.dp
         dp_id = dp.id
-        log.debug("INFO:rfproxy:Datapath is up (dp_id=%d)", dpid_to_str(dp_id))
+        log.info("INFO:rfproxy:Datapath is up (dp_id=%d)", dpid_to_str(dp_id))
+        msg = dp.parser.OFPPortDescStatsRequest(dp,0)
+        dp.send_msg(msg)
+    '''
         for port in dp.ports:
             if port <= dp.ofproto.OFPP_MAX:
                 msg = DatapathPortRegister(ct_id=self.ID, dp_id=dp_id,
@@ -168,9 +170,13 @@ class RFProxy(app_manager.RyuApp):
                 self.ipc_send(RFSERVER_RFPROXY_CHANNEL, RFSERVER_ID, msg)
                 log.info("Registering datapath port (dp_id=%s, dp_port=%d)",
                          dpid_to_str(dp_id), port)
-    '''
+    '''    
 
-    def register_ports(self, dp, ports):
+    @set_ev_cls(ofp_event.EventOFPPortDescStatsReply, MAIN_DISPATCHER)
+    def handler_desc_stats_reply(self, ev):
+        msg = ev.msg
+        dp = msg.datapath
+        ports = msg.body
         for port in ports:
             if port.port_no <= dp.ofproto.OFPP_MAX:
                 msg = DatapathPortRegister(ct_id=self.ID, dp_id=dp.id,
@@ -178,13 +184,6 @@ class RFProxy(app_manager.RyuApp):
                 self.ipc.send(RFSERVER_RFPROXY_CHANNEL, RFSERVER_ID, msg)
                 log.info("Registering datapath port (dp_id=%s, dp_port=%d)",
                          dpid_to_str(dp.id), port.port_no)
-
-    @set_ev_cls(ofp_event.EventOFPPortDescStatsReply, MAIN_DISPATCHER)
-    def handler_desc_stats_reply(self, ev):
-        msg = ev.msg
-        dp = msg.datapath
-        ports = msg.body
-        self.register_ports(dp, ports)
 
 
     @set_ev_cls(event.EventSwitchLeave, MAIN_DISPATCHER)
