@@ -78,7 +78,7 @@ class RFProcessor(IPC.IPCMessageProcessor):
             hub.sleep(0)
         dp.send_msg(ofmsg)
         hub.sleep(0)
-        log.info("ofp_flow_mod %s was sent to datapath (dp_id = %x)",
+        log.debug("ofp_flow_mod %s was sent to datapath (dp_id = %x)",
                  str(ofmsg), dp.id)
 
     def process(self, from_, to, channel, msg):
@@ -159,8 +159,8 @@ class RFProxy(app_manager.RyuApp):
     def handler_datapath_enter(self, ev):
         dp = ev.switch.dp
         dp_id = dp.id
-        log.info("INFO:rfproxy:Datapath is up (dp_id=%d)", dpid_to_str(dp_id))
-        msg = dp.parser.OFPPortDescStatsRequest(dp,0)
+        log.info("INFO:rfproxy:Datapath is up (dp_id=%s)", dpid_to_str(dp_id))
+        msg = dp.ofproto_parser.OFPPortDescStatsRequest(dp,0)
         dp.send_msg(msg)
     '''
         for port in dp.ports:
@@ -219,7 +219,7 @@ class RFProxy(app_manager.RyuApp):
                     log.warn("dropped packet to rfvs (vs_id: %s, "
                              "vs_port: %d)", dpid_to_str(dp_id), in_port)
             else:
-                log.info("Unmapped datapath port (dp_id=%s, dp_port=%d)",
+                log.debug("Unmapped datapath port (dp_id=%s, dp_port=%d)",
                          dpid_to_str(dp_id), in_port)
             return
 
@@ -248,5 +248,5 @@ class RFProxy(app_manager.RyuApp):
                 log.warn("dropped packet from rfvs (dp_id: %s, "
                          "dp_port: %d)", dpid_to_str(dp_id), dp_port)
         else:
-            log.info("Unmapped RFVS port (vs_id=%s, vs_port=%d)",
+            log.debug("Unmapped RFVS port (vs_id=%s, vs_port=%d)",
                      dpid_to_str(dp_id), in_port)
